@@ -1,5 +1,6 @@
 # technical-test
 
+This is a TODO project generated with Vue 3 and Vuex for state management.
 ## Project setup
 ```
 npm install
