@@ -5,6 +5,8 @@ export default createStore({
   state: {
     todos: [],
     activeTodo: null,
+    currentRoute: 'All',
+
     loading: false,
     error: false,
   },
@@ -27,19 +29,21 @@ export default createStore({
       state.activeTodo = todoId;
     },
 
-    updateTodo(state, todo) {
+    setCurrentRoute(state, route) {
+      state.currentRoute = route;
+    },
+
+    updateTodoName(state, todo) {
       state.todos.find((item) => item.id === todo.id).name = todo.name;
     },
 
     updateStateTodo(state, todo) {
-      console.log(todo);
       state.todos.find((item) => item.id === todo.id).completed = !todo.completed;
     },
 
-    removeTodo(state) {
-      const index = state.todos.findIndex((todo) => todo.id === state.activeTodo);
+    removeTodo(state, todoId) {
+      const index = state.todos.findIndex((todo) => todo.id === todoId);
       state.todos.splice(index, 1);
-      state.activeTodo = null;
     },
 
     removeAllCompleted(state) {
@@ -59,7 +63,7 @@ export default createStore({
   },
 
   actions: {
-    //TODO: Implement json server to test it
+    //TODO: Implement json server
     //Call to Todo Services to get Data and saves into todos State Array
     async getTodos() {
       try {

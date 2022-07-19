@@ -3,7 +3,7 @@
     type="text"
     class="new-todo"
     autofocus
-    placeholder="Whats needs to be done？"
+    :placeholder="placehoder"
     :value="modelValue"
     @input="$emit('update:modelValue', $event.target.value)"
     @keyup.enter="$emit('addTodo', modelValue)"
@@ -16,6 +16,10 @@ export default {
   props: {
     modelValue: {
       type: [String, Number],
+    },
+    placehoder: {
+      type: [String],
+      default: 'Whats needs to be done？',
     },
   },
 };

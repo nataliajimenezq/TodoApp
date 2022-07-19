@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TodoInput.vue Render component 1`] = `<input type="text" class="new-todo" autofocus="" placeholder="Whats needs to be done？">`;
