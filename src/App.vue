@@ -1,30 +1,110 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  <section class="todoapp">
+    <header>
+      <h1>todos</h1>
+      <TodoInput v-model="newTodo" @addTodo="addTodo" />
+    </header>
+    <router-view />
+
+    <footer class="footer" v-if="todosList.length">
+      <span class="todo-count">
+        <strong>{{ pluralizeRemaining }}</strong>
+      </span>
+      <ul class="filters">
+        <li v-for="route in routesNames" :key="route">
+          <router-link
+            :to="{ path: `${route.toLowerCase()}` }"
+            @click="setCurrentRoute(route)"
+            :class="{ selected: currentRouteName === route }"
+            >{{ route }}
+          </router-link>
+        </li>
+      </ul>
+      <button class="clear-completed" @click="clearCompleted" v-if="hasCompleteTodo.length">Clear completed</button>
+    </footer>
+  </section>
 </template>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
+import todos from '@/mock';
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import TodoInput from '@/components/TodoInput';
+/* import { useRoute } from 'vue-router'; */
 
-nav {
-  padding: 30px;
+export default {
+  name: 'App',
+  components: {
+    TodoInput,
+  },
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
+  setup() {
+    /**
+     * Store,Routes and Variables
+     */
+    const store = useStore();
+    /*     const route = useRoute(); */
+    const routesNames = ref(['All', 'Active', 'Completed']);
+    const newTodo = ref('');
 
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
-}
-</style>
+    /**
+     * Computed
+     */
+    const todosList = computed(() => store.state.todos);
+    const currentRouteName = computed(() => store.state.currentRoute);
+    const hasCompleteTodo = computed(() => store.getters.getCompleteTodos);
+
+    const pluralizeRemaining = computed(() => {
+      const item = store.getters.getIncompleteTodos.length;
+      return `${item} item${item === 1 ? '' : 's'} left`;
+    });
+
+    /**
+     * Initial render(mocks for now)
+     */
+    onMounted(() => {
+      //Load Todos mock
+      store.commit('setTodos', todos);
+    });
+
+    /**
+     * Create a new Todo and save it in store
+     */
+
+    const addTodo = (todo) => {
+      if (newTodo.value) {
+        const note = {
+          name: todo,
+          completed: false,
+          id: todosList.value.length + 1,
+        };
+        store.commit('addTodo', note);
+        newTodo.value = '';
+      }
+    };
+
+    const setCurrentRoute = (route) => {
+      store.commit('setCurrentRoute', route);
+    };
+
+    /**
+     * Call to Store mutation to Delete all Todos
+     */
+    const clearCompleted = () => {
+      store.commit('removeAllCompleted');
+    };
+
+    return {
+      todosList,
+      newTodo,
+      addTodo,
+      pluralizeRemaining,
+      currentRouteName,
+      routesNames,
+      clearCompleted,
+      hasCompleteTodo,
+      setCurrentRoute,
+    };
+  },
+};
+</script>
