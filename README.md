@@ -13,6 +13,8 @@ TodoiTem:
 * [x] Check if the input is empty.
 
   *[] If it's empty the todo should instead be destroyed. If escape is pressed during the edit, the edit state should be left and any changes be discarded.
+
+
 * [x]Displays the number of active todos in a pluralized form. Make sure the number is wrapped by
 a tag. Also make sure to pluralize the item word correctly.
 
