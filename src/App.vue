@@ -4,7 +4,7 @@
       <h1>todos</h1>
       <TodoInput v-model="newTodo" @addTodo="addTodo" />
     </header>
-    <router-view :todos="filteredTodos" @removeTodo="removeTodo" />
+    <router-view :todos="filteredTodos" @toggleAll="toggleAll" />
 
     <footer class="footer" v-if="todosList.length">
       <span class="todo-count">
@@ -17,13 +17,15 @@
           </router-link>
         </li>
       </ul>
-      <button class="clear-completed" @click="clearCompleted">Clear completed</button>
+      <button class="clear-completed" @click="clearCompleted" v-if="hasCompleteTodo.length">Clear completed</button>
     </footer>
   </section>
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import todos from '@/mock';
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import TodoInput from '@/components/TodoInput';
 import { useRoute } from 'vue-router';
 
@@ -34,12 +36,20 @@ export default {
   },
 
   setup() {
-    const todosList = ref([]);
+    /**
+     * Store,Routes and Variables
+     */
+    const store = useStore();
+    const route = useRoute();
     const routesNames = ref(['All', 'Active', 'Completed']);
     const newTodo = ref('');
-    const route = useRoute();
 
-    const currentRouteName = computed(() => route.name);
+    /**
+     * Computed
+     */
+    const todosList = computed(() => store.state.todos);
+    const currentRouteName = computed(() => route.name || 'All');
+    const hasCompleteTodo = computed(() => store.getters.getCompleteTodos);
 
     const pluralizeRemaining = computed(() => {
       const item = filteredTodos.value.length;
@@ -47,37 +57,49 @@ export default {
     });
 
     const filteredTodos = computed(() => {
-      if (currentRouteName.value === 'All') {
-        return todosList.value;
-      } else if (currentRouteName.value === 'Active') {
-        return todosList.value.filter((todo) => !todo.completed);
-      } else {
-        return todosList.value.filter((todo) => todo.completed);
-      }
+      const filterStore = {
+        All: () => todosList.value,
+        Active: () => todosList.value.filter((todo) => todo.completed === false),
+        Completed: () => todosList.value.filter((todo) => todo.completed === true),
+      };
+      return filterStore[currentRouteName.value]();
     });
 
+    /**
+     * Initial render(mock for now)
+     */
+    onMounted(() => {
+      //Load Todos mock
+      store.commit('setTodos', todos);
+    });
+
+    /**
+     * Create a new Todo and save it in store
+     */
     const addTodo = (todo) => {
       if (newTodo.value) {
-        todosList.value.push({
+        const note = {
           name: todo,
           completed: false,
-          editing: false,
-          id: filteredTodos.value.length,
-        });
+          id: filteredTodos.value.length + 1,
+        };
+        store.commit('addTodo', note);
         newTodo.value = '';
       }
     };
 
-    const removeTodo = (todo) => {
-      const index = todosList.value.indexOf(todo);
-      if (index !== -1) {
-        todosList.value.splice(todosList.value.indexOf(todo), 1);
-      }
+    /**
+     * Call to Store mutation to Delete all Todos
+     */
+    const clearCompleted = () => {
+      store.commit('removeAllCompleted');
     };
 
-    const clearCompleted = () => {
-      const incompleted = todosList.value.filter((todo) => todo.completed !== true);
-      todosList.value = incompleted;
+    /**
+     * Call to Store mutation to complete All Todos and toggle
+     */
+    const toggleAll = () => {
+      store.commit('toggleCompletedTodos');
     };
 
     return {
@@ -88,8 +110,9 @@ export default {
       filteredTodos,
       currentRouteName,
       routesNames,
-      removeTodo,
       clearCompleted,
+      toggleAll,
+      hasCompleteTodo,
     };
   },
 };
