@@ -3,6 +3,10 @@ import TodoPage from '@/views/TodoPage.vue';
 
 const routes = [
   {
+    path: '/',
+    redirect: '/all',
+  },
+  {
     path: '/:route',
     component: TodoPage,
   },
